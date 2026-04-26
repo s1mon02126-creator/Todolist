@@ -10,29 +10,31 @@ on:
       platform:
         description: "Platform"
         required: true
-        default: "macos-latest"
+        default: "windows-latest"
         type: choice
         options:
           - "windows-latest"
           - "macos-latest"
           - "ubuntu-24.04"
       url:
-        description: "Website URL"
+        description: "Website URL or local file path (e.g. ./TodoList.html)"
         required: true
+        default: "./TodoList.html"
       name:
         description: "App name (lowercase for Linux)"
         required: true
+        default: "todolist"
       icon:
         description: "Icon URL, auto-fetch if empty"
         required: false
       width:
         description: "Window width (px)"
         required: false
-        default: "1200"
+        default: "460"
       height:
         description: "Window height (px)"
         required: false
-        default: "780"
+        default: "620"
       fullscreen:
         description: "Start in fullscreen mode"
         required: false
@@ -42,7 +44,7 @@ on:
         description: "Hide title bar (macOS only)"
         required: false
         type: boolean
-        default: false
+        default: true
       multi_arch:
         description: "Universal binary (macOS only)"
         required: false
@@ -52,6 +54,11 @@ on:
         description: "Package formats (comma-separated: deb,appimage,rpm)"
         required: false
         default: "deb"
+      always_on_top:
+        description: "Window always on top"
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build:
@@ -124,6 +131,10 @@ jobs:
             ARGS+=("--multi-arch")
           fi
 
+          if [ "${{ inputs.always_on_top }}" == "true" ]; then
+            ARGS+=("--always-on-top")
+          fi
+
           if [ -n "${{ inputs.targets }}" ] && [ "${{ runner.os }}" == "Linux" ]; then
             ARGS+=("--targets" "${{ inputs.targets }}")
           fi
@@ -156,6 +167,10 @@ jobs:
 
           if ("${{ inputs.hide_title_bar }}" -eq "true") {
             $args += "--hide-title-bar"
+          }
+
+          if ("${{ inputs.always_on_top }}" -eq "true") {
+            $args += "--always-on-top"
           }
 
           Write-Host "Running: node dist/cli.js $($args -join ' ')"
